@@ -13,6 +13,7 @@ def explore(func: FunctionType, msg_on_fail: Optional[str] = None):
         pytest.fail(msg_on_fail)
 
 
+@pytest.mark.skip("Cannot recreate environment in CI for defaults.")
 def test_create_consumer_and_producer_with_defaults():
     explore(
         lambda: kafka.KafkaProducer() and kafka.KafkaConsumer(),
@@ -20,10 +21,10 @@ def test_create_consumer_and_producer_with_defaults():
     )
 
 
-def test_create_consumer_and_producer_with_bootstrap_servers():
+def test_create_consumer_and_producer_with_bootstrap_servers(kafka_server):
     explore(
-        lambda: kafka.KafkaProducer(bootstrap_servers="localhost:9092")
-        and kafka.KafkaConsumer(bootstrap_servers="localhost:9092"),
+        lambda: kafka.KafkaProducer(bootstrap_servers=kafka_server)
+        and kafka.KafkaConsumer(bootstrap_servers=kafka_server),
         "Failed to create server-bootstrapped Kafka Producer.",
     )
 
@@ -49,10 +50,12 @@ def test_send_msg_with_key(producer, topic):
     )
 
 
-def test_consume_msgs_from_topic(producer, topic):
+def test_consume_msgs_from_topic(producer, topic, kafka_server):
     def _consume_msgs():
         producer.send(topic, value=b"A message.")
-        consumer = kafka.KafkaConsumer(topic, auto_offset_reset="earliest")
+        consumer = kafka.KafkaConsumer(
+            topic, bootstrap_servers=kafka_server, auto_offset_reset="earliest"
+        )
 
         msg = next(consumer)
         assert msg

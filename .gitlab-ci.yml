@@ -4,6 +4,8 @@ image: python:latest
 # only cache local items.
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  KAFKA_HOST: "kafka"
+  KAFKA_PORT: 9092
 
 cache:
   paths:
@@ -24,7 +26,7 @@ pytest:
   script:
     - pip install pytest pytest-cov
     - pip install -e .
-    - pytest -s tests --cov redis_log_handler --cov-report term-missing --tb=native
+    - pytest -s tests/unit --cov kafka_handler --cov-report term-missing --tb=native
 
 security:
   stage: test
