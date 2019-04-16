@@ -42,7 +42,7 @@ class KafkaLogHandler(logging.StreamHandler):
             **_create_dict_without_none_values(
                 topic=self.topic,
                 value=value.encode(ENCODING),
-                key=self.key.encode(ENCODING),
+                key=self.key,
                 partition=self.partition,
             )
         )
