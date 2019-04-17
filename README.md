@@ -58,5 +58,5 @@ raw_handler = KafkaLogHandler(topic="topic", raw_logging=True)
 ...
 logging.info("Test message")
 ```
-A pure handler would emit a message like so: `Test message.`,
+A pure handler would emit a message like so: `Test message.`,  
 the `raw_handler` however, will emit a message like so: `Test message. - 2: /.../file.py`.
