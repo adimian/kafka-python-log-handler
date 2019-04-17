@@ -13,7 +13,6 @@ def explore(func: FunctionType, msg_on_fail: Optional[str] = None):
         pytest.fail(msg_on_fail)
 
 
-@pytest.mark.skip("Cannot recreate environment in CI for defaults.")
 def test_create_consumer_and_producer_with_defaults():
     explore(
         lambda: kafka.KafkaProducer() and kafka.KafkaConsumer(),

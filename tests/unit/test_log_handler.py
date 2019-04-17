@@ -1,13 +1,19 @@
 import logging
 
 import pytest
+import kafka
 from kafka import KafkaProducer, KafkaConsumer
 from kafka.errors import NoBrokersAvailable
 
 from kafka_handler import KafkaLogHandler
 
 
-def test_handler_can_be_created(topic):
+def mock_check_version(*args, **kwargs):
+    """Necessary mock for KafkaProducer not to connect on init."""
+    return 0, 10
+
+
+def test_handler_can_be_created(topic, mock_kafka_producer):
     handler = KafkaLogHandler(topic=topic)
     assert handler
 
@@ -26,14 +32,9 @@ def test_handler_can_be_created(topic):
     assert handler.producer.config.get("bootstrap_servers") == "127.0.0.1:9092"
 
 
-def test_handler_can_not_be_created_with_wrong_kafka_connection(topic):
-    with pytest.raises(NoBrokersAvailable):
-        KafkaLogHandler(topic=topic, bootstrap_servers="le_cool_host:1234")
-
-
-def test_message_payload_does_not_contain_none_values(topic, monkeypatch, capsys):
-    monkeypatch.setattr(KafkaProducer, "send", lambda x, **kwargs: print(kwargs))
-
+def test_message_payload_does_not_contain_none_values(
+    topic, capsys, mock_kafka_producer
+):
     log_message = logging.LogRecord(
         "name", "level", "pathname", "lineno", "message", ["args"], "exc_info"
     )
@@ -53,9 +54,7 @@ def test_message_payload_does_not_contain_none_values(topic, monkeypatch, capsys
     assert "None" not in out
 
 
-def test_handlers_are_isolated_per_topic(topic, monkeypatch, capsys):
-    monkeypatch.setattr(KafkaProducer, "send", lambda x, **kwargs: print(kwargs))
-
+def test_handlers_are_isolated_per_topic(topic, mock_kafka_producer, capsys):
     msg_one = "message_one"
     msg_two = "message_two"
 
@@ -82,11 +81,7 @@ def test_handlers_are_isolated_per_topic(topic, monkeypatch, capsys):
     assert "message_two" in out_two
 
 
-def test_raw_logs_print_linenumber_and_pathname(topic, monkeypatch, capsys):
-    monkeypatch.setattr(
-        KafkaProducer, "send", lambda x, **kwargs: print(kwargs.get("value"))
-    )
-
+def test_raw_logs_print_linenumber_and_pathname(topic, mock_kafka_producer, capsys):
     msg = logging.LogRecord("", "", "pathname", "lineno_for_real", "message", [], "")
 
     handler = KafkaLogHandler(topic=topic, raw_logging=True)
@@ -96,4 +91,4 @@ def test_raw_logs_print_linenumber_and_pathname(topic, monkeypatch, capsys):
     assert isinstance(emitted_output, str)
     assert "lineno_for_real" in emitted_output
     assert "pathname" in emitted_output
-    assert emitted_output == "b'message - lineno_for_real: pathname'\n"
+    assert "b'message - lineno_for_real: pathname'" in emitted_output

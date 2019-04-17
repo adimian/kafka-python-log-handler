@@ -25,3 +25,13 @@ def producer() -> kafka.KafkaProducer:
 @pytest.fixture
 def topic() -> str:
     return "kafka-log-handler-topic"
+
+
+@pytest.fixture
+def mock_kafka_producer(monkeypatch):
+    monkeypatch.setattr(
+        kafka.client_async.KafkaClient, "check_version", lambda *args, **kwargs: (0, 10)
+    )
+    monkeypatch.setattr(
+        kafka.KafkaProducer, "send", lambda *args, **kwargs: print(kwargs)
+    )

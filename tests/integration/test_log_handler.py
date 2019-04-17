@@ -1,8 +1,15 @@
 import logging
 
+import pytest
 from kafka import KafkaConsumer
+from kafka.errors import NoBrokersAvailable
 
 from kafka_handler import KafkaLogHandler
+
+
+def test_handler_can_not_be_created_with_wrong_kafka_connection(topic):
+    with pytest.raises(NoBrokersAvailable):
+        KafkaLogHandler(topic=topic, bootstrap_servers="le_cool_host:1234")
 
 
 def test_produced_logs_can_be_consumed(topic, kafka_server):
