@@ -1,4 +1,4 @@
-# Kafka log handler
+# Kafka Python Log Handler
 Handler for the standard `logging` module which puts logs through to Kafka.
 The current implementation is very basic to accommodate our needs, but additional functionality may be coming when the parent project grows.
 
